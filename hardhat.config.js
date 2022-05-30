@@ -1,14 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 
-// To learn how to create a task go to
-// https://hardhat.org/guides/create-task.html
-
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
-
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
+// Import and configure dotenv
+require("dotenv").config();
 
 module.exports = {
   solidity: "0.8.4",

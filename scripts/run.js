@@ -1,24 +1,46 @@
 const main = async () => {
-  const [owner, randomPerson] = await hre.ethers.getSigners();
-  const recContractFactory = await hre.ethers.getContractFactory("BookRecPortal");
-  const recContract = await recContractFactory.deploy();
-  await recContract.deployed();
+  const bookContractFactory = await hre.ethers.getContractFactory("BookRecPortal");
 
-  console.log("Contract deployed to:", recContract.address);
-  console.log("Contract deployed by:", owner.address);
+  // Deploy with starting balance
+  const bookContract = await bookContractFactory.deploy({
+    value: hre.ethers.utils.parseEther("0.001"),
+  });
+  await bookContract.deployed();
+  console.log("Contract address:", bookContract.address);
+
+  // Get contract balance
+  let contractBalance = await hre.ethers.provider.getBalance(bookContract.address);
+  console.log(
+    "Contract balance:",
+    hre.ethers.utils.formatEther(contractBalance)
+  );
+
+  // Sending a few book recs
+  let recTxn = await bookContract.recommend("Dr. Zhivago is the best book I've ever read");
+  await recTxn.wait(); // Wait for the transaction to be mined
+
+  /* Testing the 30 min timeout
+   * let recTxn2 = await bookContract.recommend("Gonna get richhhhh");
+   * await recTxn.wait(); // Wait for the transaction to be mined
+   */
+
+  const [_, randomPerson] = await hre.ethers.getSigners()
+  recTxn = await bookContract.connect(randomPerson).recommend("The Three Body Problem trilogy is SYCK");
+  await recTxn.wait(); // Wait for the transaction to be mined
+
+  // Check contract balance after transactions
+  contractBalance = await hre.ethers.provider.getBalance(bookContract.address);
+  console.log(
+    "Contract balance:",
+    hre.ethers.utils.formatEther(contractBalance)
+  );
+
+  let allRecs = await bookContract.getAllRecs();
+  console.log(allRecs);
 
   let recCount;
-  recCount = await recContract.getTotalRecs();
-
-  let recTxn = await recContract.submitRec();
-  await recTxn.wait();
-
-  recCount = await recContract.getTotalRecs();
-
-  recTxn = await recContract.connect(randomPerson).submitRec();
-  await recTxn.wait();
-
-  recCount = await recContract.getTotalRecs();
+  recCount = await bookContract.getTotalNumRecs();
+  console.log(recCount.toNumber());
 };
 
 const runMain = async () => {
@@ -29,7 +51,6 @@ const runMain = async () => {
     console.log(error);
     process.exit(1); // exit Node process while indicating 'Uncaught Fatal Exception' error
   }
-  // Read more about Node exit ('process.exit(num)') status codes here: https://stackoverflow.com/a/47163396/7974948
 };
 
 runMain();
