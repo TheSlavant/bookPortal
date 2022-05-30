@@ -77,4 +77,5 @@
 .recButton:disabled,
 .recButton[disabled] {
   background-color: #999999;
+  cursor: not-allowed;
 }
